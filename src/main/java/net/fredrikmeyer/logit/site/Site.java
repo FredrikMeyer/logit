@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
+
 import static j2html.TagCreator.*;
 
 @RestController("/")
@@ -28,7 +30,9 @@ public class Site {
         var picoCssVersion = Resources.readVersion("picocss");
         logger.info("Pico version " + picoCssVersion);
         String rendered = html(head(link().attr("rel", "stylesheet")
-                        .withHref("/webjars/picocss__pico/" + picoCssVersion + "/css/pico.min.css")),
+                                .withHref("/webjars/picocss__pico/" + picoCssVersion + "/css/pico.min.css"),
+                        link().attr("rel", "stylesheet").withHref("/custom.css")
+                ),
                 meta().attr("charset", "utf-8"),
                 meta().withName("viewport").attr("value", "width=device-width, initial-scale=1"),
                 title("First todo app"),
@@ -42,7 +46,7 @@ public class Site {
 
         logger.debug("Htmx version {}", htmxVersion);
 
-        return body(main(h1("Simple ToDO"),
+        return body(nav(ul(li(h1("ToDo")))).withClass("container-fluid"), main(
                         div(div(this.newTodoForm()),
                                 div(article(div("Loading...").attr("hx-get", "/todos")
                                         .attr("hx-trigger", "load"))))
@@ -83,8 +87,10 @@ public class Site {
     public String getTodos() {
         var todos = this.todoRepository.listTodos();
 
-        return div(text("Number of todos: " + todos.size()), ul(each(todos, todo -> li(todoHtml(todo))))
-                .withId("todo-list"))
+        return div(text("Number of todos: " + todos.size()),
+                ul(each(todos.stream().sorted(Comparator.comparing(t -> t.created)).toList(),
+                        todo -> li(todoHtml(todo))))
+                        .withId("todo-list"))
                 .render();
     }
 

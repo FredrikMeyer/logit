@@ -14,7 +14,7 @@ A simple Spring Boot application using HTMX+[PicoCSS](https://picocss.com/docs/c
 
 After build, run:
 
-```
+```bash
 java -jar ./target/logit-0.0.1-SNAPSHOT.jar
 ```
 
