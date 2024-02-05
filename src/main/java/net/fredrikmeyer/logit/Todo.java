@@ -33,12 +33,12 @@ public class Todo {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Todo todo = (Todo) o;
-        return Objects.equals(content, todo.content) && Objects.equals(id,
+        return done == todo.done && Objects.equals(content, todo.content) && Objects.equals(id,
                 todo.id) && Objects.equals(created, todo.created);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(content, id, created);
+        return Objects.hash(content, id, created, done);
     }
 }

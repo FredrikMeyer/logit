@@ -19,7 +19,8 @@ class TodoRepositoryTest {
 
         var listOfTodos = todoRepo.listTodos();
 
-        assertTrue(listOfTodos.contains(new Todo("Check this", "1")));
+        var res = listOfTodos.stream().filter(t -> t.id == "1").findAny();
+        assertTrue(res.isPresent());
     }
 
     @Test

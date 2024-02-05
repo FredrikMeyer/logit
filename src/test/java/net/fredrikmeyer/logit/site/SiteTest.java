@@ -40,6 +40,6 @@ class SiteTest {
         var res = testRestTemplate.postForEntity(String.format("http://localhost:%s/todo", this.port),
                 entity, String.class);
 
-        assertEquals(res.getBody(), "dsads");
+        assertTrue(res.getBody().contains("my new todo"));
     }
 }
