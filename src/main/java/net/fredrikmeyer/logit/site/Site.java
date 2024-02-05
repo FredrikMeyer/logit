@@ -31,8 +31,7 @@ public class Site {
         logger.info("Pico version " + picoCssVersion);
         String rendered = html(head(link().attr("rel", "stylesheet")
                                 .withHref("/webjars/picocss__pico/" + picoCssVersion + "/css/pico.min.css"),
-                        link().attr("rel", "stylesheet").withHref("/custom.css")
-                ),
+                        link().attr("rel", "stylesheet").withHref("/custom.css")),
                 meta().attr("charset", "utf-8"),
                 meta().withName("viewport").attr("value", "width=device-width, initial-scale=1"),
                 title("First todo app"),
@@ -46,24 +45,18 @@ public class Site {
 
         logger.debug("Htmx version {}", htmxVersion);
 
-        return body(nav(ul(li(h1("ToDo")))).withClass("container-fluid"), main(
-                        div(div(this.newTodoForm()),
-                                div(article(div("Loading...").attr("hx-get", "/todos")
-                                        .attr("hx-trigger", "load"))))
-                                .withClass("grid")
-                ).withClass("container"),
+        return body(nav(ul(li(strong("ToDo"))), ul(li("Teeny tiny"))).withClass("container-fluid"),
+                main(div(div(this.newTodoForm()),
+                        div(article(div("Loading...").attr("hx-get", "/todos").attr("hx-trigger", "load")))).withClass(
+                        "grid")).withClass("container"),
 
                 script().withSrc("/webjars/htmx.org/" + htmxVersion + "/dist/htmx.min.js"));
     }
 
     private DomContent newTodoForm() {
         return article(form(label("Fill in todo").withFor("value"),
-                input().withType("text")
-                        .withId("value")
-                        .attr("required")
-                        .withName("value"), button("Submit"))
-                .attr("hx-post", "/todo")
-                .attr("hx-swap", "beforeend")
+                input().withType("text").withId("value").attr("required").withName("value"),
+                button("Submit")).attr("hx-post", "/todo").attr("hx-swap", "beforeend")
                 .attr("hx-target", "#todo-list"));
     }
 
@@ -89,9 +82,7 @@ public class Site {
 
         return div(text("Number of todos: " + todos.size()),
                 ul(each(todos.stream().sorted(Comparator.comparing(t -> t.created)).toList(),
-                        todo -> li(todoHtml(todo))))
-                        .withId("todo-list"))
-                .render();
+                        todo -> li(todoHtml(todo)))).withId("todo-list")).render();
     }
 
     @PostMapping("/todo")
@@ -107,21 +98,13 @@ public class Site {
     }
 
     private DomContent todoHtml(Todo todo) {
-        var deleteButton = a("X")
-                .attr("role", "button")
-                .withHref("#")
-                .attr("hx-delete", "/todo/" + todo.id)
-                .attr("hx-swap", "delete")
-                .attr("hx-target", "closest li")
-                .attr("hx-confirm", "Really delete?")
+        var deleteButton = a("X").attr("role", "button").withHref("#").attr("hx-delete", "/todo/" + todo.id)
+                .attr("hx-swap", "delete").attr("hx-target", "closest li").attr("hx-confirm", "Really delete?")
                 .withClass("outline");
         var base = todo.humanString();
 
-        return join(span(todo.done ? s(base) : text(base))
-                        .attr("hx-post", "/todos/done/" + todo.id)
-                        .attr("hx-swap", "innerHTML")
-                        .attr("hx-target", "closest li"),
-                deleteButton);
+        return join(span(todo.done ? s(base) : text(base)).attr("hx-post", "/todos/done/" + todo.id)
+                .attr("hx-swap", "innerHTML").attr("hx-target", "closest li"), deleteButton);
     }
 
     @PostMapping("/todos/done/{id}")
