@@ -1,8 +1,14 @@
 # Spring Boot practice
 
+A simple Spring Boot application using HTMX+PicoCSS and j2html for the frontend.
+
 ## Build
 
 `mvn install`
+
+## Run Tests
+
+`mvn test`
 
 ## Run
 
