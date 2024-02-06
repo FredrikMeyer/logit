@@ -2,35 +2,29 @@ package net.fredrikmeyer.logit.site;
 
 import j2html.tags.ContainerTag;
 import j2html.tags.DomContent;
+import j2html.tags.UnescapedText;
 import j2html.tags.specialized.BodyTag;
 import j2html.tags.specialized.SpanTag;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import net.fredrikmeyer.logit.Resources;
 import net.fredrikmeyer.logit.Todo;
-import net.fredrikmeyer.logit.TodoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
+import java.util.List;
 
 import static j2html.TagCreator.*;
 
-@RestController("/")
+@Component
 public class Site {
-    private final TodoRepository todoRepository;
 
-    public Site(TodoRepository todoRepository) {
-        this.todoRepository = todoRepository;
+    public Site() {
     }
 
     static Logger logger = LoggerFactory.getLogger(Site.class);
 
-    @GetMapping("/")
+
     public String root() {
         var picoCssVersion = Resources.readVersion("picocss");
         logger.info("Pico  version " + picoCssVersion);
@@ -72,67 +66,39 @@ public class Site {
                 .attr("hx-target", "#todo-list"));
     }
 
-    @RequestMapping("/test2")
-    public String test2(HttpSession session) {
-        Integer counter = (Integer) session.getAttribute("counter");
-        if (counter == null) {
-            counter = 0;
-        }
-        // Increment the counter
-        counter++;
-        // Store the updated counter back in the session
-        session.setAttribute("counter", counter);
 
-        var content = "You clicked " + counter + " times";
-
-        return div().withText(content)
-                .render();
-    }
-
-    @RequestMapping("/todos")
-    public String getTodos() {
-        var todos = this.todoRepository.listTodos();
-
-        return div(this.todoSummary(),
+    public String getTodos(List<Todo> todos, long numberDone) {
+        var total = todos.size();
+        return div(this.todoSummary(total, numberDone),
                 ul(each(todos.stream()
                         .sorted(Comparator.comparing(t -> t.created))
                         .toList(), todo -> li(todoHtml(todo)))).withId("todo-list")).render();
     }
 
-    private ContainerTag<SpanTag> todoSummary() {
-        return span(todoSummaryText()).withId("todo-summary")
-                .attr("hx-trigger", "newTodo from:body")
+    private ContainerTag<SpanTag> todoSummary(long total, long done) {
+        return span(todoSummaryText(total, done)).withId("todo-summary")
+                .attr("hx-trigger", "newTodo from:body, deleteTodo from:body")
                 .attr("hx-get", "/todos/summary");
     }
 
-    @GetMapping("/todos/summary")
-    public String todoSummaryUpdated() {
-        return this.todoSummary()
+    public String todoSummaryUpdated(long total, long done) {
+        return this.todoSummary(total, done)
                 .render();
     }
 
-    private String todoSummaryText() {
-        var total = this.todoRepository.numberOfTodos();
-        var done = this.todoRepository.numberOfDone();
+    private String todoSummaryText(long total, long done) {
         return "Number of todos: " + total + ". Number done: " + done + ".";
     }
 
-    @PostMapping("/todo")
-    public ResponseEntity<String> newTodo(HttpServletRequest body) {
-        var value = body.getParameter("value");
-
-        logger.info("Form value: {}", value);
-
-        var todo = new Todo(value);
-        var created = this.todoRepository.createTodo(todo);
-
-        HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.set("HX-Trigger", "newTodo");
-
-        return new ResponseEntity<>(li(todoHtml(created)).render(), responseHeaders, HttpStatus.OK);
+    public String todoString(Todo todo) {
+        return todoHtml(todo).render();
     }
 
-    private DomContent todoHtml(Todo todo) {
+    public String todoListElement(Todo todo) {
+        return li(todoHtml(todo)).render();
+    }
+
+    private UnescapedText todoHtml(Todo todo) {
         var deleteButton = a("X").attr("role", "button")
                 .withHref("#")
                 .attr("hx-delete", "/todo/" + todo.id)
@@ -145,25 +111,5 @@ public class Site {
         return join(span(todo.done ? s(base) : text(base)).attr("hx-swap", "innerHTML")
                 .attr("hx-post", "/todos/done/" + todo.id)
                 .attr("hx-target", "closest li"), deleteButton);
-    }
-
-    @PostMapping("/todos/done/{id}")
-    public String markDone(@PathVariable Long id) {
-        var todo = this.todoRepository.markDone(id);
-
-        var summary = this.todoSummary()
-                .withId("todo-summary")
-                .attr("hx-swap-oob", "true");
-
-        return todoHtml(todo).render() + summary.render();
-    }
-
-    @DeleteMapping("/todo/{id}")
-    public ResponseEntity<String> deleteTodo(@PathVariable Long id) {
-        this.todoRepository.deleteTodo(id);
-        logger.info("deleting id {}", id);
-        var headers = new HttpHeaders();
-        headers.set("HX-Trigger", "newTodo");
-        return new ResponseEntity<>(null, headers, HttpStatus.OK);
     }
 }
