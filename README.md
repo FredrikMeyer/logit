@@ -12,10 +12,22 @@ A simple Spring Boot application using HTMX+[PicoCSS](https://picocss.com/docs/c
 
 ## Run
 
+First, start Postgres:
+
+```bash
+docker run --name logitdb -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_USER=logit -p 5432:5432 -d postgres
+```
+
 After build, run:
 
 ```bash
 java -jar ./target/logit-0.0.1-SNAPSHOT.jar
+```
+
+Or
+
+```bash
+mvn spring-boot:run
 ```
 
 ## Inspiration
@@ -26,3 +38,4 @@ https://j2html.com/examples.html
 ## Future?
 
  - Potentially look at Thymeleaf for templates. See f.ex [this](https://github.com/wiverson/htmx-demo?tab=readme-ov-file) 
+ - Deploy somewhere
