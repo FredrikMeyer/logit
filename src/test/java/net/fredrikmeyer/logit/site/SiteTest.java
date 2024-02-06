@@ -16,10 +16,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class SiteTest {
-
-    @Autowired
-    private TodoRepository todoRepository;
-
     @Autowired
     private TestRestTemplate testRestTemplate;
     @LocalServerPort
@@ -27,19 +23,18 @@ class SiteTest {
 
     @Test
     void newTodo() {
-        var site = new Site(this.todoRepository);
-
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
         map.add("value", "my new todo");
 
-        var entity = new HttpEntity<MultiValueMap<String, String>>(map, headers);
+        var entity = new HttpEntity<>(map, headers);
 
         var res = testRestTemplate.postForEntity(String.format("http://localhost:%s/todo", this.port),
                 entity, String.class);
 
-        assertTrue(res.getBody().contains("my new todo"));
+        assertTrue(res.getBody()
+                .contains("my new todo"));
     }
 }

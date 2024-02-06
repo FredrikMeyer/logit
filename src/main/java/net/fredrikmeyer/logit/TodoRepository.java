@@ -1,49 +1,61 @@
 package net.fredrikmeyer.logit;
 
+import net.fredrikmeyer.logit.db.TodoDAO;
+import net.fredrikmeyer.logit.db.TodoDAORepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Repository
 public class TodoRepository {
 
-    private Map<String, Todo> todos;
+    Logger logger = LoggerFactory.getLogger(TodoRepository.class);
+    private final TodoDAORepository todoDAORepository;
 
-    public TodoRepository() {
-        var dummys = new ArrayList<Todo>();
-        dummys.add(new Todo("Kjøp mat", "1"));
-        dummys.add(new Todo("rydd hjemme", "2"));
+    public TodoRepository(TodoDAORepository todoDAORepository) {
+        this.todoDAORepository = todoDAORepository;
 
-        this.todos = dummys.stream().collect(Collectors.toMap(t -> t.id, t -> t));
     }
 
     public List<Todo> listTodos() {
-        return this.todos.values().stream().toList();
+        return this.todoDAORepository.findAll()
+                .stream()
+                .map(TodoDAO::toDomain)
+                .toList();
     }
 
     public Todo createTodo(Todo todo) {
-        this.todos.put(todo.id, todo);
-
-        return todo;
+        var res = this.todoDAORepository.save(TodoDAO.fromDomainTodo(todo));
+        return res.toDomain();
     }
 
-    public boolean deleteTodo(String id) {
-        var res = this.todos.remove(id);
-
-        return res != null;
-    }
-
-    public Todo markDone(String id) {
-        var todo = this.todos.get(id);
-        if (todo == null) {
-            throw new RuntimeException("Could not find todo " + id);
+    public void deleteTodo(Long id) {
+        try {
+            this.todoDAORepository.deleteById(id);
+        } catch (RuntimeException ignored) {
         }
+    }
 
-        todo.done = !todo.done;
+    public long numberOfDone() {
+        return this.todoDAORepository.countByDoneIsTrue();
+    }
 
-        return todo;
+    public long numberOfTodos() {
+        return this.todoDAORepository.count();
+    }
+
+    public Todo markDone(Long id) {
+        var todo = this.todoDAORepository.findById(id);
+        var domainTodo = todo.map(TodoDAO::toDomain)
+                .orElseThrow();
+        domainTodo.markAsDone();
+
+        logger.info("test" + this.todoDAORepository.countByDoneIsTrue());
+        this.todoDAORepository.setDone(id, domainTodo.done);
+
+        return domainTodo;
     }
 }

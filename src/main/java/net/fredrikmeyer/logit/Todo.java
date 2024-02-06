@@ -1,5 +1,8 @@
 package net.fredrikmeyer.logit;
 
+import jakarta.persistence.Entity;
+import org.springframework.lang.NonNull;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
@@ -7,19 +10,29 @@ import java.util.UUID;
 
 public class Todo {
     public String content;
-    public String id;
+    public Long id;
 
     public LocalDateTime created = LocalDateTime.now();
     public boolean done = false;
 
-    public Todo(String content, String id) {
+    public Todo(String content, Long id) {
         this.content = content;
         this.id = id;
     }
 
     public Todo(String value) {
         this.content = value;
-        this.id = UUID.randomUUID().toString();
+        this.id = UUID.randomUUID().getLeastSignificantBits();
+    }
+
+    public Todo(String value, LocalDateTime created, Long id) {
+        this.content = value;
+        this.created = created;
+        this.id = id;
+    }
+
+    public void markAsDone() {
+        this.done = !this.done;
     }
 
     public String humanString() {
