@@ -2,18 +2,18 @@ package net.fredrikmeyer.logit.db;
 
 import jakarta.persistence.*;
 import net.fredrikmeyer.logit.Todo;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Entity
 @Table(name = "todos")
 public class TodoDAO {
     @Id
     @GeneratedValue
-    private long id;
+    private Long id;
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
@@ -38,6 +38,9 @@ public class TodoDAO {
     @Column(name = "done", nullable = false, columnDefinition = "boolean default true")
     public boolean done = false;
 
+    @Column()
+    public LocalDateTime deadline;
+
     public TodoDAO() {
     }
 
@@ -50,12 +53,18 @@ public class TodoDAO {
         var toReturn = new TodoDAO(todo.content, todo.created);
         toReturn.done = todo.done;
         toReturn.id = todo.id;
+        toReturn.deadline = todo.deadline;
         return toReturn;
     }
 
     public Todo toDomain() {
-        var toReturn = new Todo(this.content, this.created, this.id);
+        var toReturn = new Todo.TodoBuilder().withContent(this.content)
+                .withCreated(this.created)
+                .withId(this.id)
+                .withDeadLine(this.deadline)
+                .build();
         toReturn.done = this.done;
+        toReturn.deadline = this.deadline;
         return toReturn;
     }
 }

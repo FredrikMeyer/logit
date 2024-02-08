@@ -1,34 +1,19 @@
 package net.fredrikmeyer.logit;
 
-import jakarta.persistence.Entity;
-import org.springframework.lang.NonNull;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
-import java.util.UUID;
 
 public class Todo {
     public String content;
     public Long id;
 
+    public LocalDateTime deadline = null;
     public LocalDateTime created = LocalDateTime.now();
     public boolean done = false;
 
-    public Todo(String content, Long id) {
-        this.content = content;
-        this.id = id;
-    }
+    public Todo() {
 
-    public Todo(String value) {
-        this.content = value;
-        this.id = UUID.randomUUID().getLeastSignificantBits();
-    }
-
-    public Todo(String value, LocalDateTime created, Long id) {
-        this.content = value;
-        this.created = created;
-        this.id = id;
     }
 
     public void markAsDone() {
@@ -38,7 +23,7 @@ public class Todo {
     public String humanString() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         var dateString = this.created.format(formatter);
-        return this.content + " (" + dateString + ")";
+        return this.content + " (" + dateString + ")" + "deadline: " + this.deadline;
     }
 
     @Override
@@ -47,11 +32,43 @@ public class Todo {
         if (o == null || getClass() != o.getClass()) return false;
         Todo todo = (Todo) o;
         return done == todo.done && Objects.equals(content, todo.content) && Objects.equals(id,
-                todo.id) && Objects.equals(created, todo.created);
+                todo.id) && Objects.equals(deadline, todo.deadline) && Objects.equals(created,
+                todo.created);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(content, id, created, done);
+        return Objects.hash(content, id, deadline, created, done);
+    }
+
+    public static class TodoBuilder {
+        private final Todo todo = new Todo();
+
+        public TodoBuilder() {
+        }
+
+        public TodoBuilder withContent(String content) {
+            this.todo.content = content;
+            return this;
+        }
+
+        public TodoBuilder withId(Long id) {
+            this.todo.id = id;
+            return this;
+        }
+
+        public TodoBuilder withDeadLine(LocalDateTime deadline) {
+            this.todo.deadline = deadline;
+            return this;
+        }
+
+        public TodoBuilder withCreated(LocalDateTime created) {
+            this.todo.created = created;
+            return this;
+        }
+
+        public Todo build() {
+            return this.todo;
+        }
     }
 }

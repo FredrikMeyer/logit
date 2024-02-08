@@ -42,6 +42,10 @@ public class Site {
                         .withId("value")
                         .attr("required")
                         .withName("value"),
+                label("Deadline").withFor("deadline"),
+                input().withType("date")
+                        .withName("deadline")
+                        .withId("deadline"),
                 button("Submit")).attr("hx-post", "/todo")
                 .attr("hx-swap", "beforeend")
                 .attr("hx-target", "#todo-list")

@@ -21,7 +21,9 @@ class TodoRepositoryTest {
     void listTodos() {
         var todoRepo = new TodoRepository(todoDAORepository);
 
-        todoRepo.createTodo(new Todo("Hey"));
+        var todo = new Todo.TodoBuilder().withContent("Hey")
+                .build();
+        todoRepo.createTodo(todo);
         var res = todoRepo.listTodos();
 
         assertEquals(res.size(), 1);
@@ -33,18 +35,26 @@ class TodoRepositoryTest {
     @Test
     void createTodo() {
         var todoRepo = new TodoRepository(todoDAORepository);
-        todoRepo.createTodo(new Todo("Check this", 1L));
+        var todo = new Todo.TodoBuilder().withContent("Hey")
+                .withId(1L)
+                .build();
+        todoRepo.createTodo(todo);
 
         var listOfTodos = todoRepo.listTodos();
 
-        var res = listOfTodos.stream().filter(t -> t.id == 1L).findAny();
+        var res = listOfTodos.stream()
+                .filter(t -> t.id == 1L)
+                .findAny();
         assertTrue(res.isPresent());
     }
 
     @Test
     void markDone() {
         var todoRepo = new TodoRepository(todoDAORepository);
-        todoRepo.createTodo(new Todo("My todo", 1L));
+        var todo = new Todo.TodoBuilder().withContent("My todo")
+                .withId(1L)
+                .build();
+        todoRepo.createTodo(todo);
 
         todoRepo.markDone(1L);
 
@@ -59,12 +69,17 @@ class TodoRepositoryTest {
     @Test
     void deleteTodo() {
         var todoRepo = new TodoRepository(todoDAORepository);
-
-        var todo = todoRepo.createTodo(new Todo("My todo"));
+        var todoInput = new Todo.TodoBuilder().withContent("My todo")
+                .withId(1L)
+                .build();
+        var todo = todoRepo.createTodo(todoInput);
 
         todoRepo.deleteTodo(todo.id);
 
-        var res = todoRepo.listTodos().stream().filter(t -> Objects.equals(t.id, todo.id)).findAny();
+        var res = todoRepo.listTodos()
+                .stream()
+                .filter(t -> Objects.equals(t.id, todo.id))
+                .findAny();
         assertTrue(res.isEmpty());
     }
 }

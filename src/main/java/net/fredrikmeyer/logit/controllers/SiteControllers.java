@@ -11,6 +11,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
+
 @RestController()
 public class SiteControllers {
     static Logger logger = LoggerFactory.getLogger(SiteControllers.class);
@@ -45,9 +51,19 @@ public class SiteControllers {
     @PostMapping("/todo")
     public ResponseEntity<String> newTodo(HttpServletRequest body) {
         var value = body.getParameter("value");
+        var deadline = body.getParameter("deadline");
+        var formatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd")
+                .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
+                .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
+                .toFormatter();
 
+        var deadlineParsed = (deadline != null && !deadline.isEmpty()) ? LocalDateTime.parse(deadline,
+                formatter) : null;
         logger.info("Form value: {}", value);
-        var todo = new Todo(value);
+        var todo = new Todo.TodoBuilder().withContent(value)
+                .withDeadLine(deadlineParsed)
+                .build();
+
         var created = this.todoRepository.createTodo(todo);
 
         HttpHeaders responseHeaders = new HttpHeaders();

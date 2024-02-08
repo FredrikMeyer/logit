@@ -1,17 +1,17 @@
 package net.fredrikmeyer.logit.site;
 
+import net.fredrikmeyer.logit.TodoRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.time.LocalDateTime;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -19,6 +19,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 class SiteIntegrationTest {
+    @Autowired
+    TodoRepository todoRepository;
 
     @Autowired
     private MockMvc mockMvc;
@@ -30,14 +32,31 @@ class SiteIntegrationTest {
     @Test
     @WithMockUser(username = "user", password = "password")
     void newTodo() throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
-        map.add("value", "my new todo");
-
         this.mockMvc.perform(post("/todo").with(csrf())
-                        .param("value", "my new todo"))
+                        .param("value", "my new todo"
+                        )
+                        .param("deadline", ""))
                 .andExpect(status().isOk());
+
+        var allTodos = todoRepository.listTodos();
+        assertEquals(allTodos.size(), 1);
+        var firstTodo = allTodos.getFirst();
+        assertEquals(firstTodo.content, "my new todo");
+    }
+
+    @Test
+    @WithMockUser(username = "user", password = "password")
+    void newTodoWithDeadline() throws Exception {
+        this.mockMvc.perform(post("/todo").with(csrf())
+                        .param("value", "my new todo"
+                        )
+                        .param("deadline", "2023-12-11"))
+                .andExpect(status().isOk());
+
+        var allTodos = todoRepository.listTodos();
+        assertEquals(allTodos.size(), 1);
+        var firstTodo = allTodos.getFirst();
+        assertEquals(firstTodo.content, "my new todo");
+        assertEquals(firstTodo.deadline, LocalDateTime.of(2023, 12,11, 0, 0));
     }
 }
