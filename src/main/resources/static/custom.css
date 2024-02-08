@@ -10,3 +10,7 @@ nav {
 nav strong {
     font-size: 20px;
 }
+
+.error {
+    color: crimson;
+}

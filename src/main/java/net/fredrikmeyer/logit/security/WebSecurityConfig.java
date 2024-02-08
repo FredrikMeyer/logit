@@ -14,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity()
 public class WebSecurityConfig {
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests((requests) -> requests.requestMatchers("/custom.css", "/webjars/**", "/favicon.ico")
@@ -22,6 +23,7 @@ public class WebSecurityConfig {
                         .authenticated())
                 .formLogin(form -> form.loginPage("/login")
                         .loginProcessingUrl("/login")
+                        //.failureHandler(authenticationFailureHandler())
                         //.successForwardUrl("/")
                         //.failureForwardUrl("/loginfailure")
                         .permitAll())
