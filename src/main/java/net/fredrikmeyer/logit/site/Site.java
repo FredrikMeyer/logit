@@ -3,9 +3,7 @@ package net.fredrikmeyer.logit.site;
 import j2html.tags.ContainerTag;
 import j2html.tags.DomContent;
 import j2html.tags.UnescapedText;
-import j2html.tags.specialized.BodyTag;
 import j2html.tags.specialized.SpanTag;
-import net.fredrikmeyer.logit.Resources;
 import net.fredrikmeyer.logit.Todo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,41 +16,24 @@ import static j2html.TagCreator.*;
 
 @Component
 public class Site {
+    private final Layout layout;
 
-    public Site() {
+    public Site(Layout layout) {
+        this.layout = layout;
     }
 
     static Logger logger = LoggerFactory.getLogger(Site.class);
 
 
-    public String root() {
-        var picoCssVersion = Resources.readVersion("picocss");
-        logger.info("Pico  version " + picoCssVersion);
-        String rendered = html(head(link().attr("rel", "stylesheet")
-                                .withHref("/webjars/picocss__pico/" + picoCssVersion + "/css/pico.min.css"),
-                        link().attr("rel", "stylesheet")
-                                .withHref("/custom.css")),
-                meta().attr("charset", "utf-8"),
-                meta().withName("viewport")
-                        .attr("value", "width=device-width, initial-scale=1"),
-                title("First todo app"),
-                getBody()).render();
-
-        return "<!DOCTYPE html>\n" + rendered;
+    public String root(String csrfToken) {
+        return this.layout.root(getMainContent(), csrfToken);
     }
 
 
-    private BodyTag getBody() {
-        var htmxVersion = Resources.readVersion("htmx");
-
-        logger.debug("Htmx version {}", htmxVersion);
-
-        return body(nav(ul(li(strong("ToDo"))), ul(li("Teeny tiny"))).withClass("container-fluid"),
-                main(div(div(this.newTodoForm()),
-                        div(article(div("Loading...").attr("hx-get", "/todos")
-                                .attr("hx-trigger", "load")))).withClass("grid")).withClass("container"),
-
-                script().withSrc("/webjars/htmx.org/" + htmxVersion + "/dist/htmx.min.js"));
+    private DomContent getMainContent() {
+        return div(div(this.newTodoForm()),
+                div(article(div("Loading...").attr("hx-get", "/todos")
+                        .attr("hx-trigger", "load")))).withClass("grid");
     }
 
     private DomContent newTodoForm() {
@@ -63,7 +44,8 @@ public class Site {
                         .withName("value"),
                 button("Submit")).attr("hx-post", "/todo")
                 .attr("hx-swap", "beforeend")
-                .attr("hx-target", "#todo-list"));
+                .attr("hx-target", "#todo-list")
+                .attr("hx-on::after-request", "this.reset()"));
     }
 
 

@@ -11,6 +11,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
+/**
+ * Tests uses in-memory H2 Db.
+ */
 @SpringBootTest
 class TodoRepositoryTest {
 

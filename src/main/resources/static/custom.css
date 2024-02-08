@@ -6,3 +6,7 @@ nav {
     height: 100px;
     box-shadow: 0 1px 0 rgba(115, 130, 140, 0.2);
 }
+
+nav strong {
+    font-size: 20px;
+}

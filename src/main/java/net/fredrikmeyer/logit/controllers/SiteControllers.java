@@ -11,7 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RestController("/")
+@RestController()
 public class SiteControllers {
     static Logger logger = LoggerFactory.getLogger(SiteControllers.class);
     private final Site site;
@@ -23,8 +23,9 @@ public class SiteControllers {
     }
 
     @GetMapping("/")
-    public String root() {
-        return this.site.root();
+    public String root(HttpServletRequest request) {
+        String csrfToken = Helpers.extractCsrfToken(request);
+        return this.site.root(csrfToken);
     }
 
     @RequestMapping("/todos")

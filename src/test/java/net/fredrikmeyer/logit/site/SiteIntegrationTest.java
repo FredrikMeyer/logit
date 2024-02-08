@@ -1,6 +1,5 @@
 package net.fredrikmeyer.logit.site;
 
-import net.fredrikmeyer.logit.TodoRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,10 +11,10 @@ import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class SiteTest {
+class SiteIntegrationTest {
     @Autowired
     private TestRestTemplate testRestTemplate;
     @LocalServerPort
