@@ -1,6 +1,6 @@
 # Spring Boot practice
 
-A simple Spring Boot application using HTMX+[PicoCSS](https://picocss.com/docs/containers.html) and j2html for the frontend.
+A simple Spring Boot application using [HTMX](https://htmx.org/examples/)+[PicoCSS](https://picocss.com/docs/containers.html) and j2html for the frontend.
 
 ## Build
 
@@ -39,3 +39,4 @@ https://j2html.com/examples.html
 
  - Potentially look at Thymeleaf for templates. See f.ex [this](https://github.com/wiverson/htmx-demo?tab=readme-ov-file) 
  - Deploy somewhere
+ - Add not hard coded users (see f.ex https://www.baeldung.com/spring-security-jdbc-authentication)
