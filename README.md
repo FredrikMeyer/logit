@@ -1,5 +1,7 @@
 # Spring Boot practice
 
+[![Java CI with Maven](https://github.com/FredrikMeyer/logit/actions/workflows/maven.yml/badge.svg)](https://github.com/FredrikMeyer/logit/actions/workflows/maven.yml)
+
 A simple Spring Boot application using [HTMX](https://htmx.org/examples/)+[PicoCSS](https://picocss.com/docs/containers.html) and j2html for the frontend.
 
 ## Build
