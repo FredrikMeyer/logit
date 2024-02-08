@@ -5,6 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.web.csrf.CsrfToken;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.Optional;
 
 public class Helpers {
@@ -16,5 +19,16 @@ public class Helpers {
 
         return csrfToken.map(CsrfToken::getToken)
                 .orElse("");
+    }
+
+    public static LocalDateTime getLocalDateTime(String deadline) {
+        var formatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd")
+                .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
+                .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
+                .toFormatter();
+
+        var deadlineParsed = (deadline != null && !deadline.isEmpty()) ? LocalDateTime.parse(deadline,
+                formatter) : null;
+        return deadlineParsed;
     }
 }

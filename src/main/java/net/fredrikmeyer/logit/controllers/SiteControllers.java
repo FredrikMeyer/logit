@@ -17,6 +17,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 
+import static net.fredrikmeyer.logit.controllers.Helpers.getLocalDateTime;
+
 @RestController()
 public class SiteControllers {
     static Logger logger = LoggerFactory.getLogger(SiteControllers.class);
@@ -52,13 +54,7 @@ public class SiteControllers {
     public ResponseEntity<String> newTodo(HttpServletRequest body) {
         var value = body.getParameter("value");
         var deadline = body.getParameter("deadline");
-        var formatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd")
-                .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
-                .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
-                .toFormatter();
-
-        var deadlineParsed = (deadline != null && !deadline.isEmpty()) ? LocalDateTime.parse(deadline,
-                formatter) : null;
+        var deadlineParsed = getLocalDateTime(deadline);
         logger.info("Form value: {}", value);
         var todo = new Todo.TodoBuilder().withContent(value)
                 .withDeadLine(deadlineParsed)
