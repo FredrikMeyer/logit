@@ -5,6 +5,7 @@ import j2html.tags.DomContent;
 import j2html.tags.UnescapedText;
 import j2html.tags.specialized.SpanTag;
 import net.fredrikmeyer.logit.Todo;
+import net.fredrikmeyer.logit.site.HTMXWrapper.HXSWapAttribute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -33,7 +34,24 @@ public class Site {
     private DomContent getMainContent() {
         return div(div(this.newTodoForm()),
                 div(article(div("Loading...").attr("hx-get", "/todos")
-                        .attr("hx-trigger", "load")))).withClass("grid");
+                        .attr("hx-trigger", "load"))),
+                div(article(chatWindow()).withClass("grid")));
+    }
+
+    private DomContent chatWindow() {
+        return div(div().withId("chatroom"),
+                form(input().withName("chat-message")).withId("chat-send")
+                        .attr("ws-send")
+
+        ).attr("hx-ext", "ws")
+                .attr("ws-connect", "/chat")
+                .attr("hx-on:htmx:ws-after-send", "this.querySelector(\"form\").reset()");
+    }
+
+    public String chatResponse(String response) {
+        return div(response).attr("hx-swap-oob", HXSWapAttribute.BeforeEnd.toString())
+                .withId("chatroom")
+                .render();
     }
 
     private DomContent newTodoForm() {

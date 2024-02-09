@@ -23,7 +23,8 @@ public class Layout {
         String rendered = html(getHead(),
                 body(getNav(), main(mainContent).withClass("container")).attr("hx-headers",
                         String.format("{\"X-CSRF-Token\": \"%s\"}", csrfToken)),
-                script().withSrc("/webjars/htmx.org/" + htmxVersion + "/dist/htmx.min.js")).render();
+                script().withSrc("/webjars/htmx.org/" + htmxVersion + "/dist/htmx.min.js"),
+                script().withSrc("/webjars/htmx.org/" + htmxVersion + "/dist/ext/ws.js")).render();
 
         return "<!DOCTYPE html>\n" + rendered;
     }
