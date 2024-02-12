@@ -32,6 +32,11 @@ jobs:
         redis-version: 7
         redis-port: 6370
         redis-container-name: localhost
+    - name: Install redis cli # so we can test the server
+      run: sudo apt-get install -y redis-tools
+
+    - name: Verify that redis is up
+      run: redis-cli ping
     - name: Build with Maven
       run: mvn -B package
     - name: Test
