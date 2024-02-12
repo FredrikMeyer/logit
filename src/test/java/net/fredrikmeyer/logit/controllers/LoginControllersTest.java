@@ -23,7 +23,7 @@ class LoginControllersTest {
         this.mockMvc.perform(post("/login").with(csrf())
                         .param("username", "user"
                         )
-                        .param("password", "password"))
+                        .param("password", "p"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"))
                 .andReturn();

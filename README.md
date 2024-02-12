@@ -20,6 +20,11 @@ First, start Postgres:
 docker run --name logitdb -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_USER=logit -p 5432:5432 -d postgres
 ```
 
+Then start Redis:
+```bash
+docker run --name my-redis -p 6379:6379 -d redis
+```
+
 After build, run:
 
 ```bash
@@ -42,8 +47,8 @@ https://j2html.com/examples.html
  - Potentially look at Thymeleaf for templates. See f.ex [this](https://github.com/wiverson/htmx-demo?tab=readme-ov-file) 
  - Deploy somewhere
  - Add not hard coded users (see f.ex https://www.baeldung.com/spring-security-jdbc-authentication)
- 
- 
+
+
 ### Plan for user db
 
 Look at this one: https://www.bezkoder.com/spring-boot-security-postgresql-jwt-authentication/

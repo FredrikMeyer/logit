@@ -49,7 +49,7 @@ public class Site {
     }
 
     public String chatResponse(String response) {
-        return div(response).attr("hx-swap-oob", HXSWapAttribute.BeforeEnd.toString())
+        return div(div(response)).attr("hx-swap-oob", HXSWapAttribute.BeforeEnd.toString())
                 .withId("chatroom")
                 .render();
     }

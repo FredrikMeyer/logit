@@ -1,8 +1,13 @@
 package net.fredrikmeyer.logit.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.fredrikmeyer.logit.site.Site;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
@@ -14,12 +19,19 @@ import java.security.Principal;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@Component
 public class ChatControllers extends TextWebSocketHandler {
     private final List<WebSocketSession> activeSession = new CopyOnWriteArrayList<>();
     private final Site site;
 
-    public ChatControllers(Site site) {
+    Logger logger = LoggerFactory.getLogger(ChatControllers.class);
+
+    private final StringRedisTemplate redisTemplate;
+
+    public ChatControllers(Site site, StringRedisTemplate redisTemplate) {
         this.site = site;
+        this.redisTemplate = redisTemplate;
+        logger.info("I WAS CREATED");
     }
 
     @Override
@@ -34,17 +46,13 @@ public class ChatControllers extends TextWebSocketHandler {
         super.afterConnectionClosed(session, status);
 
         activeSession.remove(session);
+        logger.info("Removed session " + session.getId());
     }
 
     @Override
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
         super.handleMessage(session, message);
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode rootNode = mapper.readTree(message.getPayload()
-                .toString());
-
-        String msg = rootNode.path("chat-message")
-                .asText();
+        String msg = getMessageText(message);
 
         String user = null;
         Principal principal = session.getPrincipal();
@@ -53,8 +61,16 @@ public class ChatControllers extends TextWebSocketHandler {
         }
 
         String result = user + "> " + msg;
+        redisTemplate.convertAndSend("chat", result);
+    }
 
-        broadcast(result);
+    private static String getMessageText(WebSocketMessage<?> message) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode rootNode = mapper.readTree(message.getPayload()
+                .toString());
+
+        return rootNode.path("chat-message")
+                .asText();
     }
 
     public void broadcast(String message) throws IOException {
