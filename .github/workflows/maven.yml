@@ -30,13 +30,13 @@ jobs:
       uses: supercharge/redis-github-action@1.8.0
       with:
         redis-version: 7
-        redis-port: 6370
+        redis-port: 6379
         redis-container-name: localhost
     - name: Install redis cli # so we can test the server
       run: sudo apt-get install -y redis-tools
 
     - name: Verify that redis is up
-      run: redis-cli ping
+      run: redis-cli -h localhost -p 6379 ping
     - name: Build with Maven
       run: mvn -B package
     - name: Test
