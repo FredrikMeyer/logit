@@ -1,5 +1,6 @@
 package net.fredrikmeyer.logit.controllers;
 
+import net.fredrikmeyer.logit.TestRedisConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -12,7 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
+@SpringBootTest(classes = TestRedisConfiguration.class)
 @AutoConfigureMockMvc
 class LoginControllersTest {
     @Autowired

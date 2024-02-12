@@ -1,5 +1,6 @@
 package net.fredrikmeyer.logit.site;
 
+import net.fredrikmeyer.logit.TestRedisConfiguration;
 import net.fredrikmeyer.logit.TodoRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(classes = TestRedisConfiguration.class)
 @AutoConfigureMockMvc
 class SiteIntegrationTest {
     @Autowired
