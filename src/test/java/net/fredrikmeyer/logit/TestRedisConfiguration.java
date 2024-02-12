@@ -12,12 +12,12 @@ import java.io.IOException;
 public class TestRedisConfiguration {
     private RedisServer redisServer;
 
-    public TestRedisConfiguration(RedisProperties redisProperties) throws IOException {
+    public TestRedisConfiguration(final RedisProperties redisProperties) throws IOException {
         this.redisServer = new RedisServer(redisProperties.getPort());
     }
 
     @PostConstruct
-    public void postConstruct() throws IOException {
+    public void postConstruct() throws IOException, InterruptedException {
         redisServer.start();
     }
 

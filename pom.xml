@@ -96,6 +96,13 @@
             <groupId>com.github.codemonstur</groupId>
             <artifactId>embedded-redis</artifactId>
             <version>1.4.0</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.vaadin.external.google</groupId>
+                    <artifactId>android-json</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
