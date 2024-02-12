@@ -1,7 +1,9 @@
 package net.fredrikmeyer.logit;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -13,6 +15,16 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
 @Configuration
 public class RedisConfig {
+    public int redisPort;
+    public String redisHost;
+
+    public RedisConfig(
+        @Value("${spring.data.redis.port}") int redisPort,
+        @Value("${spring.data.redis.host}") String redisHost
+    ) {
+        this.redisPort = redisPort;
+        this.redisHost = redisHost;
+    }
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
         return new LettuceConnectionFactory(new RedisStandaloneConfiguration("localhost", 6379));
