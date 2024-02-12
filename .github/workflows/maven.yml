@@ -18,7 +18,6 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
     - name: Set up JDK 21
@@ -27,6 +26,12 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
         cache: maven
+    - name: Start Redis
+      uses: supercharge/redis-github-action@1.8.0
+      with:
+        redis-version: 7
+        redis-port: 6370
+        redis-container-name: localhost
     - name: Build with Maven
       run: mvn -B package
     - name: Test

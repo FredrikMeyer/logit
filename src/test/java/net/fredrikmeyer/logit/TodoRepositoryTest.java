@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Tests uses in-memory H2 Db.
  */
-@SpringBootTest(classes = TestRedisConfiguration.class)
+@SpringBootTest
 class TodoRepositoryTest {
 
     @Test
