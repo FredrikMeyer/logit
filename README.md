@@ -41,7 +41,7 @@ Or
 mvn spring-boot:run
 ```
 
-## Run locally in Kubernetes with Kind
+## Run locally in Kubernetes with [Kind](https://kind.sigs.k8s.io/)
 
 First, create your cluster with
 
