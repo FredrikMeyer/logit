@@ -8,6 +8,10 @@ A simple Spring Boot application using [HTMX](https://htmx.org/examples/)+[PicoC
 
 `mvn install`
 
+Or:
+
+`mvn package -Dmaven.test.skip`
+
 ## Run Tests
 
 `mvn test`
@@ -35,6 +39,46 @@ Or
 
 ```bash
 mvn spring-boot:run
+```
+
+## Run locally in Kubernetes with Kind
+
+First, create your cluster with
+
+```bash
+kind create cluster
+```
+
+Then build the application as a Docker image by running
+
+```bash
+docker build -t logit:v2 .
+```
+
+in the root directory. Transfer the image to the local cluster by:
+
+```bash
+kind load docker-image --name kind logit:v2
+```
+
+Then run
+
+```
+kubectl -n default apply -f redis.yaml
+kubectl -n default apply -f postgres.yaml
+kubectl -n default apply -f application.yaml  # Maybe wait before redis+postgres are ready
+```
+
+To be able to test locally, you have to port forward:
+
+```bash
+kubectl port-forward pod/$(kubectl get pods -l app=logit-app --no-headers | awk 'NR==1{print $1}') 8080:8080
+```
+
+When done, run
+
+```bash
+kind delete cluster
 ```
 
 ## Inspiration

@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+type: Opaque
+data:
+  password: bXlzZWNyZXRwYXNzd29yZA==
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logitdb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: logitdb
+  template:
+    metadata:
+      labels:
+        app: logitdb
+    spec:
+      containers:
+      - name: postgres
+        image: postgres
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: password
+        - name: POSTGRES_USER
+          value: logit
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: logitdb
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5432
+    targetPort: 5432
+  selector:
+    app: logitdb
+
