@@ -9,6 +9,23 @@ public class HTMXWrapper {
             public String toString() {
                 return "beforeend";
             }
+        },
+        InnerHTML {
+            @Override
+            public String toString() {
+                return "inner-html";
+            }
+        },
+        None {
+            @Override
+            public String toString() {
+                return "none";
+            }
+        }, OuterHTML {
+            @Override
+            public String toString() {
+                return "outer-html";
+            }
         }
     }
 }

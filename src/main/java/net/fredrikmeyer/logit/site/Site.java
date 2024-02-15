@@ -2,7 +2,7 @@ package net.fredrikmeyer.logit.site;
 
 import j2html.tags.ContainerTag;
 import j2html.tags.DomContent;
-import j2html.tags.UnescapedText;
+import j2html.tags.specialized.DivTag;
 import j2html.tags.specialized.SpanTag;
 import net.fredrikmeyer.logit.Todo;
 import net.fredrikmeyer.logit.site.HTMXWrapper.HXSWapAttribute;
@@ -32,14 +32,14 @@ public class Site {
 
 
     private DomContent getMainContent() {
-        return div(div(this.newTodoForm()),
-                div(article(div("Loading...").attr("hx-get", "/todos")
-                        .attr("hx-trigger", "load"))),
-                div(article(chatWindow()).withClass("grid")));
+        return div(div(this.newTodoForm()), div(article(header(h2("All todos")),
+                div(span("Loading...").attr("aria-busy", "true")).attr("hx-get", "/todos")
+                        .attr("hx-swap", HXSWapAttribute.OuterHTML)
+                        .attr("hx-trigger", "load"))), div(chatWindow())).withClass("grid");
     }
 
     private DomContent chatWindow() {
-        return div(div().withId("chatroom"),
+        return article(header(h2("Chat")), div().withId("chatroom"),
                 form(input().withName("chat-message")).withId("chat-send")
                         .attr("ws-send")
 
@@ -49,22 +49,18 @@ public class Site {
     }
 
     public String chatResponse(String response) {
-        return div(div(response)).attr("hx-swap-oob", HXSWapAttribute.BeforeEnd.toString())
+        return div(div(response)).attr("hx-swap-oob", HXSWapAttribute.BeforeEnd)
                 .withId("chatroom")
                 .render();
     }
 
     private DomContent newTodoForm() {
-        return article(form(label("Fill in todo").withFor("value"),
-                input().withType("text")
-                        .withId("value")
-                        .attr("required")
-                        .withName("value"),
-                label("Deadline").withFor("deadline"),
-                input().withType("date")
-                        .withName("deadline")
-                        .withId("deadline"),
-                button("Submit")).attr("hx-post", "/todo")
+        return article(header(h2("New todo")), form(label("Fill in todo").withFor("value"), input().withType("text")
+                .withId("value")
+                .attr("required")
+                .withName("value"), label("Deadline").withFor("deadline"), input().withType("date")
+                .withName("deadline")
+                .withId("deadline"), button("Submit")).attr("hx-post", "/todo")
                 .attr("hx-swap", "beforeend")
                 .attr("hx-target", "#todo-list")
                 .attr("hx-on::after-request", "this.reset()"));
@@ -73,10 +69,9 @@ public class Site {
 
     public String getTodos(List<Todo> todos, long numberDone) {
         var total = todos.size();
-        return div(this.todoSummary(total, numberDone),
-                ul(each(todos.stream()
-                        .sorted(Comparator.comparing(t -> t.created))
-                        .toList(), todo -> li(todoHtml(todo)))).withId("todo-list")).render();
+        return div(this.todoSummary(total, numberDone), ul(each(todos.stream()
+                .sorted(Comparator.comparing(t -> t.created))
+                .toList(), todo -> li(todoHtml(todo)))).withId("todo-list")).render();
     }
 
     private ContainerTag<SpanTag> todoSummary(long total, long done) {
@@ -102,18 +97,28 @@ public class Site {
         return li(todoHtml(todo)).render();
     }
 
-    private UnescapedText todoHtml(Todo todo) {
-        var deleteButton = a("X").attr("role", "button")
+    private DomContent todoHtml(Todo todo) {
+        var deleteButton = a("✖").attr("role", "button")
                 .withHref("#")
                 .attr("hx-delete", "/todo/" + todo.id)
                 .attr("hx-swap", "delete")
                 .attr("hx-target", "closest li")
                 .attr("hx-confirm", "Really delete?")
                 .withClass("outline");
-        var base = todo.humanString();
 
-        return join(span(todo.done ? s(base) : text(base)).attr("hx-swap", "innerHTML")
+        var markDoneButton = a("✔").attr("role", "button")
+                .withHref("#")
                 .attr("hx-post", "/todos/done/" + todo.id)
-                .attr("hx-target", "closest li"), deleteButton);
+                .attr("hx-target", "closest li")
+                .attr("hx-swap", HXSWapAttribute.InnerHTML)
+                .withClass("outline");
+
+        var base = todo.humanString();
+        DivTag todoText = div(todo.done ? s(base) : text(base)).attr("hx-get", "/todos/expanded/" + todo.id)
+                .attr("hx-swap", HXSWapAttribute.None);
+
+        return div(div(todoText, div(markDoneButton, deleteButton).withClass("button-group")).withClass(
+                "todo-header"), div().withId("todo-" + todo.id)).withClass("todo");
+
     }
 }

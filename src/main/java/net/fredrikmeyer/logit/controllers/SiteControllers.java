@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import net.fredrikmeyer.logit.Todo;
 import net.fredrikmeyer.logit.TodoRepository;
 import net.fredrikmeyer.logit.site.Site;
+import net.fredrikmeyer.logit.site.TodoView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -40,7 +41,21 @@ public class SiteControllers {
     public String todos() {
         var todos = this.todoRepository.listTodos();
         var numberDone = this.todoRepository.numberOfDone();
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         return this.site.getTodos(todos, numberDone);
+    }
+
+    @RequestMapping("/todos/expanded/{id}")
+    public String todos(@PathVariable long id) {
+        var todo = this.todoRepository.getTodo(id);
+        TodoView todoView = new TodoView();
+
+        return todoView.todoExpanded(todo);
     }
 
     @GetMapping("/todos/summary")

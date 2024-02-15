@@ -21,12 +21,12 @@ Or:
 First, start Postgres:
 
 ```bash
-docker run --name logitdb -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_USER=logit -p 5432:5432 -d postgres
+docker run --rm --name logitdb -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_USER=logit -p 5432:5432 -d postgres
 ```
 
 Then start Redis:
 ```bash
-docker run --name my-redis -p 6379:6379 -d redis
+docker run --rm --name my-redis -p 6379:6379 -d redis
 ```
 
 After build, run:

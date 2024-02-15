@@ -17,10 +17,17 @@ public class Helpers {
         Optional<CsrfToken> csrfToken = Optional.ofNullable((CsrfToken) request.getAttribute(CsrfToken.class.getName()));
         logger.info("request {}", csrfToken.get());
 
+
         return csrfToken.map(CsrfToken::getToken)
                 .orElse("");
     }
 
+    /**
+     * Returns a LocalDateTime object parsed from the given deadline string.
+     *
+     * @param deadline The deadline string in the format "yyyy-MM-dd".
+     * @return A LocalDateTime object parsed from the given deadline string. Returns null if the deadline is null or empty.
+     */
     public static LocalDateTime getLocalDateTime(String deadline) {
         var formatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd")
                 .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)

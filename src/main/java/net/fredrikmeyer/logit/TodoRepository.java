@@ -32,6 +32,12 @@ public class TodoRepository {
         return res.toDomain();
     }
 
+    public Todo getTodo(long id) {
+        return this.todoDAORepository.findById(id)
+                .map(TodoDAO::toDomain)
+                .orElseThrow();
+    }
+
     public void deleteTodo(Long id) {
         try {
             this.todoDAORepository.deleteById(id);

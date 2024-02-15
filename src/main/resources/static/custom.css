@@ -14,3 +14,14 @@ nav strong {
 .error {
     color: crimson;
 }
+
+.todo {
+    & .todo-header {
+        display: flex;
+        justify-content: space-between;
+    }
+}
+
+.button-group {
+    display: flex;
+}

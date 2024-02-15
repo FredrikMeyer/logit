@@ -13,12 +13,12 @@ public class ChatMessageReceiver {
 
     Logger logger = LoggerFactory.getLogger(ChatMessageReceiver.class);
 
+    @SuppressWarnings("unused")
     public void receiveMessage(String message) {
-        logger.info("I'm called... " + message);
         try {
             chatControllers.broadcast(message);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception receiving message.", e);
         }
     }
 }
