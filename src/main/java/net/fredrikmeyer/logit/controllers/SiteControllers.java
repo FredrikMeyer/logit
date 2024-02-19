@@ -50,12 +50,18 @@ public class SiteControllers {
         return this.site.getTodos(todos, numberDone);
     }
 
-    @RequestMapping("/todos/expanded/{id}")
-    public String todos(@PathVariable long id) {
+    @RequestMapping("/todos/{id}")
+    public String todos(@PathVariable long id, @RequestParam(required = false) boolean expanded) {
         var todo = this.todoRepository.getTodo(id);
         TodoView todoView = new TodoView();
 
-        return todoView.todoExpanded(todo);
+        logger.info("Getting todo: " + id + ". Expanded: " + expanded);
+
+        if (!expanded) {
+            return site.todoString(todo, true) + todoView.todoExpanded(todo);
+        } else {
+            return site.todoString(todo);
+        }
     }
 
     @GetMapping("/todos/summary")

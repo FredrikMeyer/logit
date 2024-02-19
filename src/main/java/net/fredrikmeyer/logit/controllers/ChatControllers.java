@@ -3,6 +3,7 @@ package net.fredrikmeyer.logit.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.fredrikmeyer.logit.site.ChatView;
 import net.fredrikmeyer.logit.site.Site;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,14 +23,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Component
 public class ChatControllers extends TextWebSocketHandler {
     private final List<WebSocketSession> activeSession = new CopyOnWriteArrayList<>();
-    private final Site site;
+    private final ChatView chatView;
 
     Logger logger = LoggerFactory.getLogger(ChatControllers.class);
 
     private final StringRedisTemplate redisTemplate;
 
-    public ChatControllers(Site site, StringRedisTemplate redisTemplate) {
-        this.site = site;
+    public ChatControllers(ChatView chatView, StringRedisTemplate redisTemplate) {
+        this.chatView = chatView;
         this.redisTemplate = redisTemplate;
         logger.info("I WAS CREATED");
     }
@@ -76,7 +77,7 @@ public class ChatControllers extends TextWebSocketHandler {
     public void broadcast(String message) throws IOException {
         for (WebSocketSession session : activeSession) {
             if (session.isOpen()) {
-                session.sendMessage(new TextMessage(site.chatResponse(message)));
+                session.sendMessage(new TextMessage(chatView.chatResponse(message)));
             }
         }
     }

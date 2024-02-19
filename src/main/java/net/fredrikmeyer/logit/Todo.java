@@ -23,7 +23,7 @@ public class Todo {
     public String humanString() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         var dateString = this.created.format(formatter);
-        return this.content + " (" + dateString + ")" + "deadline: " + this.deadline;
+        return this.content + " (" + dateString + ")" + (this.deadline != null ? " Deadline: " + this.deadline : "");
     }
 
     @Override
