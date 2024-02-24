@@ -1,0 +1,380 @@
+# -*- org-export-use-babel: nil -*-
+
+* Setup of local cluster
+:PROPERTIES:
+:header-args: :result output
+:END:
+
+** Setup of local Docker registry
+Start local Docker registry.
+
+#+NAME: docker-registry-id
+#+begin_src zsh :result output
+docker run \
+       -d --restart=always -p "127.0.0.1:5001:5000" \
+       --network bridge --name "kind-registry" \
+    registry:2
+#+end_src
+
+#+RESULTS:
+: 7cac35e04977a2bdbfafb8bceb5bc06746e531d015de435fa2bc52db4ea4777a
+
+Check that it is running:
+
+#+begin_src zsh :results table
+docker ps
+#+end_src
+
+#+RESULTS:
+| CONTAINER    | ID         | IMAGE           | COMMAND | CREATED | STATUS  | PORTS | NAMES |    |         |                          |               |
+| 7cac35e04977 | registry:2 | "/entrypoint.sh | /etc…"  |      25 | minutes | ago   | Up    | 25 | minutes | 127.0.0.1:5001->5000/tcp | kind-registry |
+
+
+Create Kind cluster:
+
+#+begin_src shell :results verbatim
+kind create cluster --config ./tools/kind-api-cluster.yaml --name=logitcluster 2>&1
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Creating cluster "logitcluster" ...
+ • Ensuring node image (kindest/node:v1.27.3) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.27.3) 🖼
+ • Preparing nodes 📦 📦   ...
+ ✓ Preparing nodes 📦 📦 
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+ • Joining worker nodes 🚜  ...
+ ✓ Joining worker nodes 🚜
+Set kubectl context to "kind-logitcluster"
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-logitcluster
+
+Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/#community 🙂
+#+end_example
+
+
+Check that it works:
+
+#+begin_src shell
+kubectl config get-contexts
+#+end_src
+
+#+RESULTS:
+| CURRENT      | NAME              | CLUSTER                                  | AUTHINFO          | NAMESPACE |
+| *            | kind-logitcluster | kind-logitcluster                        | kind-logitcluster |           |
+| myAKSCluster | myAKSCluster      | clusterUser_myResourceGroup_myAKSCluster |                   |           |
+
+
+Get all pods:
+
+#+begin_src shell
+kubectl get pods -A
+#+end_src
+
+#+RESULTS:
+| NAMESPACE          | NAME                                               | READY | STATUS  | RESTARTS | AGE  |
+| kube-system        | coredns-5d78c9869d-s9xq4                           | 1/1   | Running |        0 | 112s |
+| kube-system        | coredns-5d78c9869d-xnjtj                           | 1/1   | Running |        0 | 112s |
+| kube-system        | etcd-logitcluster-control-plane                    | 1/1   | Running |        0 | 2m6s |
+| kube-system        | kindnet-6dxz2                                      | 1/1   | Running |        0 | 105s |
+| kube-system        | kindnet-8ssvf                                      | 1/1   | Running |        0 | 112s |
+| kube-system        | kube-apiserver-logitcluster-control-plane          | 1/1   | Running |        0 | 2m6s |
+| kube-system        | kube-controller-manager-logitcluster-control-plane | 1/1   | Running |        0 | 2m6s |
+| kube-system        | kube-proxy-s62jh                                   | 1/1   | Running |        0 | 105s |
+| kube-system        | kube-proxy-w5f2x                                   | 1/1   | Running |        0 | 112s |
+| kube-system        | kube-scheduler-logitcluster-control-plane          | 1/1   | Running |        0 | 2m6s |
+| local-path-storage | local-path-provisioner-6bc4bddd6b-8rb9k            | 1/1   | Running |        0 | 112s |
+
+
+Connect the Kind cluster with the local cluster:
+
+#+begin_src shell :var clustername="logitcluster"
+REGISTRY_DIR="/etc/containerd/certs.d/localhost:5001"
+for node in $(kind get nodes --name=$clustername); do
+docker exec "${node}" mkdir -p "${REGISTRY_DIR}"
+cat <<EOF | docker exec -i "${node}" cp /dev/stdin "${REGISTRY_DIR}/hosts.toml"
+[host."http://kind-registry:5000"]
+EOF
+done
+#+end_src
+
+#+RESULTS:
+
+We want to connect the networks. Let's first inspect the existing Docker networks:
+
+#+NAME: dockernls
+#+begin_src shell
+docker network ls
+#+end_src
+
+#+RESULTS: dockernls
+| NETWORK      | ID     | NAME   | DRIVER | SCOPE |
+| 3f52878b68c2 | bridge | bridge | local  |       |
+| 95ae174e4f0b | host   | host   | local  |       |
+| 30222db20344 | kind   | bridge | local  |       |
+| 4ab6c2e12926 | none   | null   | local  |       |
+
+
+How does the Kind network look like?
+
+#+begin_src shell :var kindid=dockernls[3,0] :results verbatim
+docker network inspect $kindid | jq '.[] | .Containers'
+#+end_src
+
+#+RESULTS:
+#+begin_example
+{
+  "6e1f634164eef9f5673fa797b27b7058784b0564487e39822c5954e7c491c61e": {
+    "Name": "logitcluster-worker",
+    "EndpointID": "bf093d3b337e9f33bfb2ba64950f5890c24a24d59ed0f42afe4e84bb4253741f",
+    "MacAddress": "02:42:ac:12:00:02",
+    "IPv4Address": "172.18.0.2/16",
+    "IPv6Address": "fc00:f853:ccd:e793::2/64"
+  },
+  "b87d0b7565ae9066e7ce2cd06f640bd679b74d5c0d77f831bd4560bf247968f9": {
+    "Name": "logitcluster-control-plane",
+    "EndpointID": "c95125653ac82cc7962dc76612b7fcb5036bddf858d848559c794bdc9a1c0999",
+    "MacAddress": "02:42:ac:12:00:03",
+    "IPv4Address": "172.18.0.3/16",
+    "IPv6Address": "fc00:f853:ccd:e793::3/64"
+  }
+}
+#+end_example
+
+So there are two containers in the network. Now connect the registry to the network:
+
+#+begin_src shell
+docker network connect "kind" kind-registry
+#+end_src
+
+#+RESULTS:
+
+Try to list containers in the Kind network again:
+
+#+begin_src shell :var kindid=dockernls[3,0] :results verbatim
+docker network inspect $kindid | jq '.[] | .Containers'
+#+end_src
+
+#+RESULTS:
+#+begin_example
+{
+  "6e1f634164eef9f5673fa797b27b7058784b0564487e39822c5954e7c491c61e": {
+    "Name": "logitcluster-worker",
+    "EndpointID": "bf093d3b337e9f33bfb2ba64950f5890c24a24d59ed0f42afe4e84bb4253741f",
+    "MacAddress": "02:42:ac:12:00:02",
+    "IPv4Address": "172.18.0.2/16",
+    "IPv6Address": "fc00:f853:ccd:e793::2/64"
+  },
+  "7cac35e04977a2bdbfafb8bceb5bc06746e531d015de435fa2bc52db4ea4777a": {
+    "Name": "kind-registry",
+    "EndpointID": "c27c62f7da6764e43be9b15bb526bec5e49b9684eda8dc51785d967c1ad0ae2d",
+    "MacAddress": "02:42:ac:12:00:04",
+    "IPv4Address": "172.18.0.4/16",
+    "IPv6Address": "fc00:f853:ccd:e793::4/64"
+  },
+  "b87d0b7565ae9066e7ce2cd06f640bd679b74d5c0d77f831bd4560bf247968f9": {
+    "Name": "logitcluster-control-plane",
+    "EndpointID": "c95125653ac82cc7962dc76612b7fcb5036bddf858d848559c794bdc9a1c0999",
+    "MacAddress": "02:42:ac:12:00:03",
+    "IPv4Address": "172.18.0.3/16",
+    "IPv6Address": "fc00:f853:ccd:e793::3/64"
+  }
+}
+#+end_example
+
+Now there are three.
+
+Make Kubernetes use the local cluster:
+
+#+begin_src shell
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-registry-hosting
+  namespace: kube-public
+data:
+  localRegistryHosting.v1: |
+    host: "localhost:5000"
+    help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
+EOF
+#+end_src
+
+#+RESULTS:
+: configmap/local-registry-hosting configured
+
+Inspect the created ConfigMap:
+
+#+begin_src shell 
+kubectl -n kube-public describe cm local-registry-hosting
+#+end_src
+
+#+RESULTS:
+| Name:                    | local-registry-hosting                             |
+| Namespace:               | kube-public                                        |
+| Labels:                  | <none>                                             |
+| Annotations:             | <none>                                             |
+|                          |                                                    |
+| Data                     |                                                    |
+| ====                       |                                                    |
+| localRegistryHosting.v1: |                                                    |
+| ----                     |                                                    |
+| host:                    | localhost:5000                                     |
+| help:                    | https://kind.sigs.k8s.io/docs/user/local-registry/ |
+|                          |                                                    |
+|                          |                                                    |
+| BinaryData               |                                                    |
+| ====                       |                                                    |
+|                          |                                                    |
+| Events:                  | <none>                                             |
+
+
+We will create a SSH server. Let's create an SSH key:
+
+#+begin_src shell :results ignore
+ssh-keygen -f ~/.ssh/logitssh -N "" -y -C "Key used for logit SSH server"
+#+end_src
+
+#+RESULTS:
+: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCyNSAowCS78WXkzc0cB5UHQO/3BO8mwp5YyemL+GEsIyuoovUg9CXjDcmUMmYcCi7B21XijnL55xxzDPx+PTNgZlQkF5W0gRQ6C1Qay0prRayD7KS75bZuy5TfTIicoCaRPF6S+55Wc0aa4IZaLKw2xr80OapK2hnzdeP+rb4UJGZ5DvQQzA5BdsL0J3N0P/xqoba1k4f0XqNn+G3KgEPgRMkegSvCNz0ErxIyq3QZG1/qvjLsPSbSOsoELldZlSbn2j1yzh2yBK/QjGXOTUZBsduOgDQDFbAENfdNQ6r5QGuoXQXfQ/xcJzschFw8cY2YrIV/uxQcWpDLjJKuzSl1Wiqwz1o4H379WuVbx0bJuK4rFrEVu2kdup9MZmDX2INdoBxwPGLa+PEkzvSyHE3cnU6GwY+p5L3OAO8zjvcsp39Iz0fubfBO5p6wFmkwZvxFP+Ez7S1UrrEObo26Z8EFZuTZxYRkA3U8RGDpfCm8Qwi19S6rXpjJ6VnTmdvqW9M= Key used for logit SSH server
+
+
+#+begin_src shell :results verbatim :dir ./sshd
+cp ~/.ssh/logitssh.pub .
+docker build --quiet -t logit.local.gd:5001/flux_sshd:v1 . 2>&1
+#+end_src
+
+#+RESULTS:
+: sha256:8156c75ff336f296ebb7d970be7b565376248c298f0eebadbafd8f5a1e8f874d
+
+Push it to our local registry:
+
+#+begin_src shell :results verbatim
+docker push logit.local.gd:5001/flux_sshd:v1
+#+end_src
+
+#+RESULTS:
+#+begin_example
+The push refers to repository [logit.local.gd:5001/flux_sshd]
+76dc132c4a91: Preparing
+d15cb0a53468: Preparing
+468c2654a18c: Preparing
+3719e327fa55: Preparing
+faf4cc80cb36: Preparing
+3ce819cc4970: Preparing
+3ce819cc4970: Waiting
+3719e327fa55: Layer already exists
+d15cb0a53468: Layer already exists
+468c2654a18c: Layer already exists
+faf4cc80cb36: Layer already exists
+3ce819cc4970: Layer already exists
+76dc132c4a91: Pushed
+v1: digest: sha256:05a344099d6dfe7740268aef029a0c481a2a4b75e7ff01b527421398cee317d4 size: 1570
+#+end_example
+
+Now create the =management= namespace: (Q: why not in a manifest file?)
+
+#+begin_src shell 
+kubectl create ns management
+#+end_src
+
+#+RESULTS:
+: namespace/management created
+
+Now create the =sshd= deployment. Apply the Kustomization file:
+
+#+begin_src shell 
+kubectl create -n management -k kubernetes/sshd
+#+end_src
+
+#+RESULTS:
+| service/sshd                   | created |
+| persistentvolumeclaim/sshd-pvc | created |
+| deployment.apps/sshd           | created |
+
+Take a look at pods:
+
+#+begin_src shell 
+kubectl -n management get pods
+#+end_src
+
+#+RESULTS:
+| NAME                  | READY | STATUS  | RESTARTS | AGE |
+| sshd-5cf6977cc7-kmhcc | 1/1   | Running |        0 | 7s  |
+
+Initialize a Git repository for Flux to monitor.
+
+In a terminal, try logging in to the SSH server =ssh -i ~/.ssh/logitssh -p 31022 logit@logit.local.gd= (also needed for saying yes to SSH for first time connect).
+
+Now create an empty Git repository (note that we specify the initial branch):
+
+
+#+begin_src shell
+ssh -i ~/.ssh/logitssh -p 31022 logit@logit.local.gd \
+    git init --initial-branch main --bare git/flux.git < /dev/null
+#+end_src
+
+#+RESULTS:
+: Initialized empty Git repository in /home/logit/git/flux.git/
+
+** GitOps with Flux
+
+Install Flux components:
+
+#+begin_src shell :dir kubernetes/flux
+flux install \
+     --components=source-controller,kustomize-controller,helm-controller,notification-controller \
+     --components-extra=image-reflector-controller,image-automation-controller \
+     --export > gotk-components.yaml
+#+end_src
+
+#+RESULTS:
+
+Commit these files.
+
+
+
+* Cleanup
+
+Remember cluster name:
+#+begin_src shell 
+kind get clusters
+#+end_src
+
+#+RESULTS:
+: logitcluster
+
+
+#+begin_src shell
+kind delete cluster --name=logitcluster
+#+end_src
+
+#+RESULTS:
+
+And stop registry:
+#+begin_src shell
+docker stop kind-registry
+docker rm kind-registry
+#+end_src
+
+#+RESULTS:
+| kind-registry |
+| kind-registry |
+
+Check nothing is running:
+
+#+begin_src shell 
+docker ps
+#+end_src
+
+#+RESULTS:
+: CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
