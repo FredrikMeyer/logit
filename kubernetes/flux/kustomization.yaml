@@ -5,3 +5,5 @@ resources:
   - gotk-components.yaml
   - flux-system-secret.yaml
   - flux-system-sync.yaml
+  - flux-webhook-secret.yaml
+  - flux-webhook.yaml
